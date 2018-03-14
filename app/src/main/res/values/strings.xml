@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">EspressoDeviceManager</string>
+    <string name="wifi">WIFI</string>
+    <string name="open_settings">Open settings screen</string>
 </resources>
