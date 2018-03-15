@@ -14,7 +14,7 @@ import android.util.Log
  * Manager for change system settings and device state.
  */
 object DeviceManager {
-    private const val TAG = "DeviceManager"
+    private const val TAG = "#EDM DeviceManager"
 
     /**
      * Open Setting write system settings screen for Android 6+ or app settings screen.
