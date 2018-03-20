@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="22dp"
+    android:background="#effaff"
     tools:context="com.example.espressodevicemanager.MainActivity">
 
     <android.support.v7.widget.AppCompatButton
@@ -19,13 +20,18 @@
 
     <Switch
         android:id="@+id/wifiSwitch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="22dp"
-        android:switchPadding="8dp"
+        style="@style/switchStyle"
         android:text="@string/wifi"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/openSettingsButton" />
+
+    <Switch
+        android:id="@+id/airplaneModeSwitch"
+        style="@style/switchStyle"
+        android:text="@string/airplane_mode"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/openSettingsButton" />
 
 </android.support.constraint.ConstraintLayout>
