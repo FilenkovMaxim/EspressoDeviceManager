@@ -4,14 +4,16 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.media.AudioManager
+import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
+
 
 /**
  * App main screen.
@@ -24,9 +26,9 @@ class MainActivity : AppCompatActivity() {
      */
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            Log.d(tag, "onReceive()")
-            Toast.makeText(applicationContext, "Received command: " + intent, Toast.LENGTH_SHORT).show()
-            Handler().postDelayed({ displayStates() }, 3000)
+            Log.d(tag, "onReceive() " + intent)
+            Toast.makeText(applicationContext, "Received: " + intent, Toast.LENGTH_SHORT).show()
+            displayStates()
         }
     }
 
@@ -36,18 +38,19 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            openSettingsButton.visibility = View.GONE
+            //openSettingsButton.visibility = View.GONE
         } else {
             openSettingsButton.setOnClickListener {
                 DeviceManager.openSettings(applicationContext)
             }
         }
 
-        wifiSwitch.setOnCheckedChangeListener { _, b ->
-            run {
-                DeviceManager.setWifi(applicationContext, b)
-            }
-        }
+        wifiSwitch.setOnCheckedChangeListener { _, b -> DeviceManager.setWifi(applicationContext, b) }
+
+        airplaneModeSwitch.setOnCheckedChangeListener { _, b -> DeviceManager.setAirplaneMode(applicationContext, b) }
+
+        // request root access
+        Runtime.getRuntime().exec("su")
     }
 
     override fun onStart() {
@@ -57,6 +60,10 @@ class MainActivity : AppCompatActivity() {
 
         val intentFilter = IntentFilter()
         intentFilter.addAction("com.example.espressodevicemanager.refresh")
+        intentFilter.addAction(Intent.ACTION_HEADSET_PLUG)
+        intentFilter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY) // unplugged
+        intentFilter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED)
+        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION)
         registerReceiver(broadcastReceiver, intentFilter)
     }
 
@@ -72,5 +79,6 @@ class MainActivity : AppCompatActivity() {
     fun displayStates() {
         Log.d(tag, "displayStates()")
         wifiSwitch.isChecked = DeviceManager.isWifiEnable(applicationContext)
+        airplaneModeSwitch.isChecked = DeviceManager.isAirplaneModeEnable(applicationContext)
     }
 }

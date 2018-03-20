@@ -8,6 +8,9 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStreamReader
 
 
 /**
@@ -46,12 +49,58 @@ object DeviceManager {
     }
 
     /**
-     * Switch WiFi state to to [enabled] state..
+     * Switch WiFi state to [enabled] state.
      * @param context application context.
      */
     fun setWifi(context: Context, enabled: Boolean) {
         Log.d(TAG, "set wifi " + enabled)
         val wifi = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         wifi.isWifiEnabled = enabled
+    }
+
+    /**
+     * @return true if airplane mode is activated now.
+     */
+    fun isAirplaneModeEnable(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            return Settings.Global.getInt(context.contentResolver, Settings.Global.AIRPLANE_MODE_ON, 0) == 1
+        }
+        return false
+    }
+
+    /**
+     * Switch airplane mode to [enabled] state..
+     * @param context application context.
+     */
+    fun setAirplaneMode(context: Context, enabled: Boolean) {
+        Log.d(TAG, "set airplane mode " + enabled)
+        val mode = if (enabled) {
+            "1"
+        } else {
+            "0"
+        }
+
+        exec("su shell settings put global airplane_mode_on " + mode)
+        exec("su shell am broadcast -a android.intent.action.AIRPLANE_MODE --ez state " + mode)
+    }
+
+    /**
+     * Execute shell command.
+     */
+    private fun exec(command: String) {
+        Log.d(TAG, "exec() " + command)
+        try {
+            val process = Runtime.getRuntime().exec(command)
+            val bufferedReader = BufferedReader(InputStreamReader(process.inputStream))
+            val inputString = bufferedReader.use { it.readText() }
+
+            // Waits for the command to finish.
+            process.waitFor()
+            Log.d(TAG, inputString)
+        } catch (e: IOException) {
+            Log.e(TAG, "IOException " + e)
+        } catch (e: InterruptedException) {
+            Log.e(TAG, "InterruptedException " + e)
+        }
     }
 }

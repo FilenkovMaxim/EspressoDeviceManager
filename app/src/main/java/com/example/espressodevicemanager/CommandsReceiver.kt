@@ -43,6 +43,10 @@ class CommandsReceiver : BroadcastReceiver() {
                 val value = intent.getBooleanExtra(valueName, false)
                 DeviceManager.setWifi(context.applicationContext, value)
             }
+            "airplane_mode" -> {
+                val value = intent.getBooleanExtra(valueName, false)
+                DeviceManager.setAirplaneMode(context.applicationContext, value)
+            }
         }
 
         // Send local broadcast for update screen indicators
