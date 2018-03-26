@@ -10,7 +10,6 @@ import android.os.Build
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -26,8 +25,14 @@ class MainActivity : AppCompatActivity() {
      */
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            Log.d(tag, "onReceive() " + intent)
-            Toast.makeText(applicationContext, "Received: " + intent, Toast.LENGTH_SHORT).show()
+            Log.d(tag, "onReceive() $intent")
+            val action = intent.action
+            if (action != null) {
+                if (Intent.ACTION_HEADSET_PLUG == action) {
+                    DeviceManager.headphonesSetCurrentState(intent.getIntExtra("state", -1) == 1)
+                }
+            }
+            Toast.makeText(applicationContext, "Received: $intent", Toast.LENGTH_SHORT).show()
             displayStates()
         }
     }
@@ -45,9 +50,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        headphonesSwitch.setOnCheckedChangeListener{ _, b -> DeviceManager.setHeadphonesPlugged(b)}
         wifiSwitch.setOnCheckedChangeListener { _, b -> DeviceManager.setWifi(applicationContext, b) }
-
-        airplaneModeSwitch.setOnCheckedChangeListener { _, b -> DeviceManager.setAirplaneMode(applicationContext, b) }
+        airplaneModeSwitch.setOnCheckedChangeListener { _, b -> DeviceManager.setAirplaneMode(b) }
 
         // request root access
         Runtime.getRuntime().exec("su")
@@ -78,6 +83,7 @@ class MainActivity : AppCompatActivity() {
      */
     fun displayStates() {
         Log.d(tag, "displayStates()")
+        headphonesSwitch.isChecked = DeviceManager.isHeadphonesEnable()
         wifiSwitch.isChecked = DeviceManager.isWifiEnable(applicationContext)
         airplaneModeSwitch.isChecked = DeviceManager.isAirplaneModeEnable(applicationContext)
     }

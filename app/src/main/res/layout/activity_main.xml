@@ -19,11 +19,19 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Switch
+        android:id="@+id/headphonesSwitch"
+        style="@style/switchStyle"
+        android:text="@string/headphones"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/openSettingsButton" />
+
+    <Switch
         android:id="@+id/wifiSwitch"
         style="@style/switchStyle"
         android:text="@string/wifi"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/openSettingsButton" />
 
     <Switch
@@ -32,6 +40,6 @@
         android:text="@string/airplane_mode"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/openSettingsButton" />
+        app:layout_constraintTop_toBottomOf="@+id/wifiSwitch" />
 
 </android.support.constraint.ConstraintLayout>

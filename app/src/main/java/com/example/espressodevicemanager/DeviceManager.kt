@@ -18,6 +18,11 @@ import java.io.InputStreamReader
  */
 object DeviceManager {
     private const val TAG = "#EDM DeviceManager"
+    private var headphonesPlugged: Boolean = false
+
+    fun headphonesSetCurrentState(enabled: Boolean) {
+        headphonesPlugged = enabled
+    }
 
     /**
      * Open Setting write system settings screen for Android 6+ or app settings screen.
@@ -41,6 +46,26 @@ object DeviceManager {
     }
 
     /**
+     * @return true if headphones are plugged.
+     */
+    fun isHeadphonesEnable(): Boolean {
+        return headphonesPlugged
+    }
+
+    /**
+     * Emulate headphones plug-in/plug-out event.
+     */
+    fun setHeadphonesPlugged(plugged: Boolean) {
+        Log.d(TAG, "set headphones $plugged")
+        if (plugged) {
+            exec("su shell am broadcast -a android.intent.action.HEADSET_PLUG --ei state 1")
+        } else {
+            exec("su shell am broadcast -a android.media.AUDIO_BECOMING_NOISY")
+            exec("su shell am broadcast -a android.intent.action.HEADSET_PLUG --ei state 0")
+        }
+    }
+
+    /**
      * @return true if wife is enabled now.
      */
     fun isWifiEnable(context: Context): Boolean {
@@ -53,7 +78,7 @@ object DeviceManager {
      * @param context application context.
      */
     fun setWifi(context: Context, enabled: Boolean) {
-        Log.d(TAG, "set wifi " + enabled)
+        Log.d(TAG, "set wifi $enabled")
         val wifi = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         wifi.isWifiEnabled = enabled
     }
@@ -69,26 +94,26 @@ object DeviceManager {
     }
 
     /**
-     * Switch airplane mode to [enabled] state..
-     * @param context application context.
+     * Switch airplane mode to [enabled] state.
+     * @param enabled new state.
      */
-    fun setAirplaneMode(context: Context, enabled: Boolean) {
-        Log.d(TAG, "set airplane mode " + enabled)
+    fun setAirplaneMode(enabled: Boolean) {
+        Log.d(TAG, "set airplane mode $enabled")
         val mode = if (enabled) {
             "1"
         } else {
             "0"
         }
 
-        exec("su shell settings put global airplane_mode_on " + mode)
-        exec("su shell am broadcast -a android.intent.action.AIRPLANE_MODE --ez state " + mode)
+        exec("su shell settings put global airplane_mode_on $mode")
+        exec("su shell am broadcast -a android.intent.action.AIRPLANE_MODE --ez state $mode")
     }
 
     /**
      * Execute shell command.
      */
     private fun exec(command: String) {
-        Log.d(TAG, "exec() " + command)
+        Log.d(TAG, "exec() $command")
         try {
             val process = Runtime.getRuntime().exec(command)
             val bufferedReader = BufferedReader(InputStreamReader(process.inputStream))
@@ -98,9 +123,9 @@ object DeviceManager {
             process.waitFor()
             Log.d(TAG, inputString)
         } catch (e: IOException) {
-            Log.e(TAG, "IOException " + e)
+            Log.e(TAG, "IOException $e")
         } catch (e: InterruptedException) {
-            Log.e(TAG, "InterruptedException " + e)
+            Log.e(TAG, "InterruptedException $e")
         }
     }
 }

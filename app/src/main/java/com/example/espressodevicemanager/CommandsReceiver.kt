@@ -39,13 +39,17 @@ class CommandsReceiver : BroadcastReceiver() {
         val option = intent.getStringExtra(optionName) ?: return
 
         when (option) {
+            "headphones_plugged" -> {
+                val value = intent.getBooleanExtra(valueName, false)
+                DeviceManager.setHeadphonesPlugged(value)
+            }
             "wifi" -> {
                 val value = intent.getBooleanExtra(valueName, false)
                 DeviceManager.setWifi(context.applicationContext, value)
             }
             "airplane_mode" -> {
                 val value = intent.getBooleanExtra(valueName, false)
-                DeviceManager.setAirplaneMode(context.applicationContext, value)
+                DeviceManager.setAirplaneMode(value)
             }
         }
 

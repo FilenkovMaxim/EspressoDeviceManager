@@ -3,4 +3,5 @@
     <string name="open_settings">Open settings screen</string>
     <string name="wifi">WIFI</string>
     <string name="airplane_mode">Airplane mode</string>
+    <string name="headphones">Headphones plugged</string>
 </resources>
