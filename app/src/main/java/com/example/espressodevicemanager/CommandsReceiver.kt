@@ -3,6 +3,7 @@ package com.example.espressodevicemanager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.util.Log
 
 /**
@@ -50,6 +51,23 @@ class CommandsReceiver : BroadcastReceiver() {
             "airplane_mode" -> {
                 val value = intent.getBooleanExtra(valueName, false)
                 DeviceManager.setAirplaneMode(value)
+            }
+            "location" -> {
+                val latitude = intent.getStringExtra("lat").toDouble()
+                val longitude = intent.getStringExtra("lng").toDouble()
+                DeviceManager.setMockLocation(context.applicationContext, latitude, longitude)
+
+                if(!ForegroundService.isRunning) {
+                    val startServiceIntent = Intent(context, ForegroundService::class.java)
+                    startServiceIntent.putExtra("latitude", latitude)
+                    startServiceIntent.putExtra("longitude", longitude)
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(startServiceIntent)
+                    } else {
+                        context.startService(startServiceIntent)
+                    }
+                }
             }
         }
 

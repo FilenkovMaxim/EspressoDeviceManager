@@ -55,7 +55,11 @@ class MainActivity : AppCompatActivity() {
         airplaneModeSwitch.setOnCheckedChangeListener { _, b -> DeviceManager.setAirplaneMode(b) }
 
         // request root access
-        Runtime.getRuntime().exec("su")
+        try {
+            Runtime.getRuntime().exec("su")
+        } catch (e: Exception) {
+            Log.w(tag, "onCreate() cannot get the root access! $e")
+        }
     }
 
     override fun onStart() {
