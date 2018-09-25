@@ -21,7 +21,7 @@ import android.util.Log
  *   -a com.example.espressodevicemanager.action --es option wifi --ez value true
  */
 class CommandsReceiver : BroadcastReceiver() {
-    private val tag = "#EDM CommandsReceiver"
+    private val tag = "#TEST CommandsReceiver"
     private val action = "com.example.espressodevicemanager.action"
     private val optionName = "option"
     private val valueName = "value"
@@ -57,16 +57,26 @@ class CommandsReceiver : BroadcastReceiver() {
                 val longitude = intent.getStringExtra("lng").toDouble()
                 DeviceManager.setMockLocation(context.applicationContext, latitude, longitude)
 
-                if(!ForegroundService.isRunning) {
-                    val startServiceIntent = Intent(context, ForegroundService::class.java)
-                    startServiceIntent.putExtra("latitude", latitude)
-                    startServiceIntent.putExtra("longitude", longitude)
+                val startServiceIntent = Intent(context, ForegroundService::class.java)
+                startServiceIntent.putExtra("latitude", latitude)
+                startServiceIntent.putExtra("longitude", longitude)
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        context.startForegroundService(startServiceIntent)
-                    } else {
-                        context.startService(startServiceIntent)
-                    }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(startServiceIntent)
+                } else {
+                    context.startService(startServiceIntent)
+                }
+            }
+            "stop" -> {
+                DeviceManager.stopMockLocation()
+
+                val startServiceIntent = Intent(context, ForegroundService::class.java)
+                startServiceIntent.putExtra("stop", true)
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(startServiceIntent)
+                } else {
+                    context.startService(startServiceIntent)
                 }
             }
         }

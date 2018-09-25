@@ -1,54 +1,34 @@
 package com.example.espressodevicemanager
 
 import android.app.Service
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.graphics.BitmapFactory
 import android.os.IBinder
 import android.support.v4.app.NotificationCompat
-import android.support.v4.content.LocalBroadcastManager
+import android.util.Log
 
 /**
  * Foreground local service for upload log files.
  */
 class ForegroundService : Service() {
+    private val tag = "#TEST ForegroundService"
     var mockLocation = false
     var latitude = .0
     var longitude = .0
 
-    private val broadCastReceiver = object : BroadcastReceiver() {
-
-        override fun onReceive(context: Context, intent: Intent) {
-            val action = intent.action
-            if ("com.example.espressodevicemanager.action" != action) {
-                return
-            }
-            val option = intent.getStringExtra("option") ?: return
-            when (option) {
-                "location" -> {
-                    latitude = intent.getStringExtra("lat").toDouble()
-                    longitude = intent.getStringExtra("lng").toDouble()
-                }
-                "stop" -> {
-                    mockLocation = false
-                    stopForeground(true)
-                    stopSelf()
-                }
-            }
-        }
-    }
-
     override fun onCreate() {
-        isRunning = true
-        LocalBroadcastManager.getInstance(this)
-                .registerReceiver(broadCastReceiver, IntentFilter("com.example.espressodevicemanager.action"))
+        Log.d(tag, "onCreate()")
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        Log.d(tag, "onStartCommand()")
+        if (intent.getBooleanExtra("stop", false)) {
+            mockLocation = false
+            stopSelf()
+            return Service.START_STICKY
+        }
+
         // initialize
-        isRunning = true
         val notification = NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle("fake location")
@@ -72,12 +52,12 @@ class ForegroundService : Service() {
     }
 
     override fun onDestroy() {
-        isRunning = false
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadCastReceiver)
+        Log.d(tag, "onDestroy()")
         DeviceManager.stopMockLocation()
     }
 
     override fun onBind(intent: Intent): IBinder? {
+        Log.d(tag, "onBind()")
         return null
     }
 
@@ -90,10 +70,5 @@ class ForegroundService : Service() {
          * Notification id for startForeground().
          */
         private const val NOTIFICATION_ID = 3000
-        /**
-         * Running flag.
-         */
-        @get:Synchronized
-        var isRunning = false
     }
 }

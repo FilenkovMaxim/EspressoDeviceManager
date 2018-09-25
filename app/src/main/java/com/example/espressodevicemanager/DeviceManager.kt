@@ -20,7 +20,7 @@ import java.io.InputStreamReader
  * Manager for change system settings and device state.
  */
 object DeviceManager {
-    private const val TAG = "#EDM DeviceManager"
+    private const val TAG = "#TEST DeviceManager"
     private var headphonesPlugged: Boolean = false
 
     fun headphonesSetCurrentState(enabled: Boolean) {

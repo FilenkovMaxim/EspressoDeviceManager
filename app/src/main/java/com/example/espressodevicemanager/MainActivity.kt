@@ -19,7 +19,7 @@ import kotlinx.android.synthetic.main.activity_main.*
  * Contains buttons for manually check ability to change settings.
  */
 class MainActivity : AppCompatActivity() {
-    private val tag = "#EDM MainActivity"
+    private val tag = "#TEST MainActivity"
     /**
      * Broadcast receiver for display changes after receive commands.
      */
