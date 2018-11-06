@@ -12,6 +12,7 @@ import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
 import java.io.BufferedReader
+import java.io.DataOutputStream
 import java.io.IOException
 import java.io.InputStreamReader
 
@@ -213,11 +214,12 @@ object DeviceManager {
 
     /**
      * Set new time.
-     * @param context application context.
      */
-    fun setTime(context: Context, time: String) {
+    fun setTime(time: String) {
         Log.d(TAG, "set date to $time")
-
+        val loProcess = Runtime.getRuntime().exec("su")
+        val loDataOutputStream = DataOutputStream(loProcess.outputStream)
+        loDataOutputStream.writeBytes("date -u -D MMDDhhmm $time; \n")
     }
 
     /**

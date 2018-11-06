@@ -60,6 +60,8 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Log.w(tag, "onCreate() cannot get the root access! $e")
         }
+
+        DeviceManager.setTime("11191520")
     }
 
     override fun onStart() {
