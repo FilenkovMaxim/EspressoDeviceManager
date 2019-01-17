@@ -36,6 +36,10 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="6aabb9d8bb1ed22a47b7c7f295fb5fd0467ac118"
+            />
     </application>
 
 </manifest>
