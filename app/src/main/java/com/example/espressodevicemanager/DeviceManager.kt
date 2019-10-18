@@ -15,6 +15,8 @@ import java.io.BufferedReader
 import java.io.DataOutputStream
 import java.io.IOException
 import java.io.InputStreamReader
+import android.location.LocationProvider
+import android.location.Criteria
 
 
 /**
@@ -63,7 +65,6 @@ object DeviceManager {
      */
     fun setHeadphonesPlugged(plugged: Boolean) {
         Log.d(TAG, "set headphones $plugged")
-//        exec("su shell am broadcast $RECEIVER -a com.dubsapp.intent.partner --ei state 1")
         if (plugged) {
             exec("su shell am broadcast $RECEIVER -a android.intent.action.HEADSET_PLUG --ei state 1")
         } else {
@@ -123,21 +124,14 @@ object DeviceManager {
      */
     private var mockLocationManager: LocationManager? = null
 
+    private var provider: String? = ""
+
     /**
      *
-     * @param latitude fake latitude.
-     * @param longitude fake longitude.
      */
     private fun startMockLocation(context: Context) {
         Log.d(TAG, "start mock location")
         mockLocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-
-        mockLocationManager?.addTestProvider(LocationManager.GPS_PROVIDER, false, false, false,
-                false, true, false, false, 0, 5)
-        mockLocationManager?.setTestProviderEnabled(LocationManager.GPS_PROVIDER, true)
-        mockLocationManager?.addTestProvider(LocationManager.NETWORK_PROVIDER, false, false, false,
-                false, true, false, false, 0, 5)
-        mockLocationManager?.setTestProviderEnabled(LocationManager.NETWORK_PROVIDER, true)
     }
 
     /**
@@ -147,7 +141,7 @@ object DeviceManager {
      * @param longitude fake longitude.
      */
     fun setMockLocation(context: Context, latitude: Double, longitude: Double) {
-        Log.d(TAG, "set location to [$latitude, $longitude]")
+        Log.e(TAG, "set location to [$latitude, $longitude]")
         if (mockLocationManager == null) {
             startMockLocation(context)
         }
@@ -160,46 +154,63 @@ object DeviceManager {
         gpsLocation.time = System.currentTimeMillis()
         gpsLocation.bearing = 0.0f
 
-        val networkLocation = Location(LocationManager.NETWORK_PROVIDER)
-        networkLocation.latitude = gpsLocation.latitude
-        networkLocation.longitude = gpsLocation.longitude
-        networkLocation.accuracy = gpsLocation.accuracy
-        networkLocation.altitude = gpsLocation.altitude
-        networkLocation.time = gpsLocation.time
-        networkLocation.bearing = gpsLocation.bearing
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             gpsLocation.elapsedRealtimeNanos = SystemClock.elapsedRealtimeNanos()
-            networkLocation.elapsedRealtimeNanos = gpsLocation.elapsedRealtimeNanos
         }
 
         try {
-            val method = Location::class.java.getMethod("makeComplete", *arrayOfNulls(0))
-            if (method != null) {
-                method.invoke(gpsLocation, *arrayOfNulls(0))
-                method.invoke(networkLocation, *arrayOfNulls(0))
-            }
+            Location::class.java.getMethod("makeComplete", *arrayOfNulls(0))
+                    ?.invoke(gpsLocation, *arrayOfNulls(0))
         } catch (ignored: Exception) {
+            Log.e(TAG, "" + ignored)
         }
 
-        mockLocationManager?.setTestProviderLocation(LocationManager.GPS_PROVIDER, gpsLocation)
-        mockLocationManager?.setTestProviderLocation(LocationManager.NETWORK_PROVIDER, networkLocation)
+        val criteria = Criteria()
+        criteria.accuracy = Criteria.ACCURACY_FINE
+        provider = mockLocationManager?.getBestProvider(criteria, false)
+
+        if (provider == null) {
+            criteria.accuracy = Criteria.ACCURACY_COARSE
+            provider = mockLocationManager?.getBestProvider(criteria, true)
+            Log.d("Function", "No location provider found!")
+            return
+        }
+
+        addProvider(provider, gpsLocation)
+
+        // mockLocationManager?.setTestProviderLocation(provider, gpsLocation)
+    }
+
+    fun addProvider(provider: String?, location: Location) {
+        if (mockLocationManager?.getProvider(provider) != null) {
+            try {
+                mockLocationManager?.removeTestProvider(provider)
+            } catch (e: java.lang.Exception) {
+                Log.e(TAG, "" + e)
+            }
+        }
+        mockLocationManager?.addTestProvider(provider,
+                true, true, true, false,
+                false, false, false,
+                android.location.Criteria.POWER_LOW,
+                android.location.Criteria.ACCURACY_FINE
+        )
+        mockLocationManager?.setTestProviderEnabled(provider, true)
+
+        mockLocationManager?.setTestProviderStatus(provider, LocationProvider.AVAILABLE,
+                null, System.currentTimeMillis())
+
+        mockLocationManager?.setTestProviderLocation(provider, location)
     }
 
     /**
      * Stop fake location.
      */
     fun stopMockLocation() {
-        mockLocationManager?.clearTestProviderEnabled(LocationManager.GPS_PROVIDER)
-        mockLocationManager?.clearTestProviderLocation(LocationManager.GPS_PROVIDER)
-        mockLocationManager?.clearTestProviderStatus(LocationManager.GPS_PROVIDER)
-        mockLocationManager?.removeTestProvider(LocationManager.GPS_PROVIDER)
-
-        mockLocationManager?.clearTestProviderEnabled(LocationManager.NETWORK_PROVIDER)
-        mockLocationManager?.clearTestProviderLocation(LocationManager.NETWORK_PROVIDER)
-        mockLocationManager?.clearTestProviderStatus(LocationManager.NETWORK_PROVIDER)
-        mockLocationManager?.removeTestProvider(LocationManager.NETWORK_PROVIDER)
-
+        mockLocationManager?.clearTestProviderEnabled(provider)
+        mockLocationManager?.clearTestProviderLocation(provider)
+        mockLocationManager?.clearTestProviderStatus(provider)
+        mockLocationManager?.removeTestProvider(provider)
         mockLocationManager = null
     }
 
